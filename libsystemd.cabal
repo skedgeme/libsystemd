@@ -1,5 +1,5 @@
 name:                libsystemd
-version:             1.0.0
+version:             2.1.2.0
 synopsis:            Haskell bindings to libsystemd
 homepage:            http://github.com/dharaj/libsystemd
 license:             BSD3
