@@ -21,7 +21,7 @@ newtype JournalCursor = JournalCursor { _unJournalCursor :: ByteString }
   deriving (Show) -- Comparing cursors is not semantically valid.
                   -- Journal cursors are null-terminated printable strings.
 
-newtype JournalField = JournalField { _unJournalField :: String }
+newtype JournalField = JournalField { _unJournalField :: ByteString }
   deriving (Eq, Ord, Show, Read)
 
 data JournalSeekResult = JournalSeekResult { _journalSeekResultRequested :: Word64
@@ -40,7 +40,7 @@ withJournalCursor :: JournalCursor -> (CString -> IO a) -> IO a
 withJournalCursor (JournalCursor c) = BS.unsafeUseAsCString c
 
 withJournalField :: JournalField -> (CString -> IO a) -> IO a
-withJournalField (JournalField s) = withCString s
+withJournalField (JournalField s) = BS.unsafeUseAsCString s
 
 journalError :: String -> Int32 -> String
 journalError s e = "Error in < " <> s <> " > : " <> show e

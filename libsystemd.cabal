@@ -31,3 +31,4 @@ library
   extra-libraries: systemd
   ghc-options: -Wall
   build-tools: hsc2hs
+  Extensions: OverloadedStrings
