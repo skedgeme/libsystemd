@@ -48,6 +48,16 @@ journalError s e = "Error in < " <> s <> " > : " <> show e
 ----------------
 -- Public API --
 ----------------
+data JournalWakeStatus = Nop | Append | Invalidate
+  deriving (Show, Eq, Enum)
+
+bitflagToStatusList :: I.JournalWakeFlag -> [JournalWakeStatus]
+bitflagToStatusList (I.JournalWakeFlag bits) = nop ++ append ++ invalidate
+  where
+    nop = flagIf bits I.journalNop Nop
+    append = flagIf bits I.journalAppend Append
+    invalidate = flagIf bits I.journalInvalidate Invalidate
+    flagIf bits (I.JournalWakeFlag flag) t = if bits .&. flag == flag then [t] else []
 
 createJournalHandle :: [I.JournalOpenFlag] -> IO Journal
 createJournalHandle flags =
