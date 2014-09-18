@@ -2,7 +2,7 @@ module Systemd.Wrapper.Journal where
 
 import qualified Systemd.Internal.Journal as I
 
-import Control.Applicative
+import Control.Applicative ()
 import Control.Concurrent.MVar (MVar)
 import qualified Control.Concurrent.MVar as MV
 import Data.ByteString (ByteString)
@@ -121,6 +121,7 @@ journalSeekCursor j cur = throwIfNeg_ (journalError "journalSeekCursor") $ withJ
 -----------------------
 -- Predefined Fields --
 -----------------------
+message, messageId, priority, codeFile, codeLine, codeFunc, errNo, sysLogFacility, sysLogIdentifier, sysLogPid, pid, uid, gid, comm, exe, cmdLine, capEffective, auditSession, auditLoginUid, systemdCGroup, systemdSession, systemdUnit, systemdUserUnit, systemdOwnerUid, systemdSlice, seLinuxContext, sourceRealtimeTimestamp, bootId, machineId, hostname, transport, kernelDevice, kernelSubsystem, kernelUdevSysname, kernelUdevDevnode, kernelUdevDevlink, coredumpUnit, coredumpUserUnit, objectPid, objectUid, objectGid, objectComm, objectExe, objectCmdLine, objectAuditSession, objectAuditLoginUid, objectSystemdCGroup, objectSystemdSession, objectSystemdUnit, objectSystemdOwnerUid, objectSystemdUserUnit :: JournalField
 
 message = JournalField "MESSAGE"
 messageId = JournalField "MESSAGE_ID"
