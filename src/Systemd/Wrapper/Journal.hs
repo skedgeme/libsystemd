@@ -57,16 +57,21 @@ bitflagToStatusList (I.JournalWakeFlag bits) = nop ++ append ++ invalidate
     nop = flagIf bits I.journalNop Nop
     append = flagIf bits I.journalAppend Append
     invalidate = flagIf bits I.journalInvalidate Invalidate
-    flagIf bits (I.JournalWakeFlag flag) t = if bits .&. flag == flag then [t] else []
+    flagIf bits' (I.JournalWakeFlag flag) t = if bits' .&. flag == flag then [t] else []
 
 createJournalHandle :: [I.JournalOpenFlag] -> IO Journal
 createJournalHandle flags =
   alloca $ \pptr -> do
-    let combinedFlags = foldl1 (.|.) . map I._unJournalOpenFlag $ flags 
+    let combinedFlags = foldl (.|.) 0 . map I._unJournalOpenFlag $ flags
     throwIfNeg_ (journalError "createJournalHandle") (I.journalOpen pptr combinedFlags)
     fptr <- newForeignPtr I.journalClosePtr =<< peek pptr
     mv <- MV.newMVar fptr
-    return (Journal mv)
+    let journal = (Journal mv)
+    r1 <- journalSeekHead journal -- somewhere useful
+    print $ "JournalSeek result : " ++ show r1
+    r2 <- journalNext journal     -- Ensure that we're pointing
+    print $ "JournalNext result : " ++ show r2
+    return journal
 
 journalNext :: Journal -> IO JournalSeekResult
 journalNext j = do
@@ -108,7 +113,18 @@ journalGetData j f =
     throwIfNeg_ (journalError "journalGetData") $ withJournalPtr j $ \p -> withJournalField f $ \str -> I.journalGetData p str vptr sptr
     dat <- peek vptr
     sz <- peek sptr
-    BS.packCStringLen (dat, fromIntegral sz) 
+    BS.packCStringLen (dat, fromIntegral sz)
+
+journalEnumerateData :: Journal -> IO (Maybe ByteString)
+journalEnumerateData j =
+  alloca $ \vptr -> alloca $ \sptr -> do
+    r <- throwIfNeg (journalError "journalEnumerateData") $ withJournalPtr j $ \p -> I.journalEnumerateData p vptr sptr
+    case r of
+      0 -> return Nothing
+      _ -> do
+         dat <- peek vptr
+         sz <- peek sptr
+         fmap Just $ BS.packCStringLen (dat, fromIntegral sz)
 
 journalProcess :: Journal -> IO I.JournalWakeFlag
 journalProcess j = fmap I.JournalWakeFlag . throwIfNeg (journalError "journalProcess") $ withJournalPtr j I.journalProcess
